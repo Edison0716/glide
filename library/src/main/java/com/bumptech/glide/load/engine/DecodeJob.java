@@ -370,6 +370,7 @@ class DecodeJob<R> implements DataFetcherGenerator.FetcherReadyCallback,
     callback.reschedule(this);
   }
 
+  //回调接口 由SourceGenerator调用
   @Override
   public void onDataFetcherReady(Key sourceKey, Object data, DataFetcher<?> fetcher,
       DataSource dataSource, Key attemptedKey) {

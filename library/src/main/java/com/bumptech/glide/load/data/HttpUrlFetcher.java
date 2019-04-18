@@ -51,6 +51,7 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
     this.connectionFactory = connectionFactory;
   }
 
+
   @Override
   public void loadData(@NonNull Priority priority,
       @NonNull DataCallback<? super InputStream> callback) {

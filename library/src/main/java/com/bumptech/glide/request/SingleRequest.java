@@ -579,6 +579,7 @@ public final class SingleRequest<R> implements Request,
       if (!anyListenerHandledUpdatingTarget) {
         Transition<? super R> animation =
             animationFactory.build(dataSource, isFirstResource);
+        //最终核心
         target.onResourceReady(result, animation);
       }
     } finally {

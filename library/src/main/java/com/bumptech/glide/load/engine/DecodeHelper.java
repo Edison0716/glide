@@ -207,6 +207,7 @@ final class DecodeHelper<Transcode> {
       for (int i = 0, size = modelLoaders.size(); i < size; i++) {
         ModelLoader<Object, ?> modelLoader = modelLoaders.get(i);
         LoadData<?> current =
+            //HttpGlideUrlLoader 的接口实现方法
             modelLoader.buildLoadData(model, width, height, options);
         if (current != null) {
           loadData.add(current);

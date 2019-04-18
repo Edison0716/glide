@@ -59,6 +59,7 @@ class SourceGenerator implements DataFetcherGenerator,
           && (helper.getDiskCacheStrategy().isDataCacheable(loadData.fetcher.getDataSource())
           || helper.hasLoadPath(loadData.fetcher.getDataClass()))) {
         started = true;
+        //调用的是HttpUrlFetcher中的loadData
         loadData.fetcher.loadData(helper.getPriority(), this);
       }
     }
@@ -100,6 +101,7 @@ class SourceGenerator implements DataFetcherGenerator,
     }
   }
 
+  //data为图片资源 由HttpUrlFetcher 的loadDataWithRedirects重定向方法请求成功后回调
   @Override
   public void onDataReady(Object data) {
     DiskCacheStrategy diskCacheStrategy = helper.getDiskCacheStrategy();
