@@ -177,8 +177,10 @@ public class Engine implements EngineJobListener,
     EngineKey key = keyFactory.buildKey(model, signature, width, height, transformations,
         resourceClass, transcodeClass, options);
 
+    //先从弱引用查找
     EngineResource<?> active = loadFromActiveResources(key, isMemoryCacheable);
     if (active != null) {
+      //找到直接回调 到 SingleRequest onResourceReady
       cb.onResourceReady(active, DataSource.MEMORY_CACHE);
       if (VERBOSE_IS_LOGGABLE) {
         logWithTimeAndKey("Loaded resource from active resources", startTime, key);
@@ -186,8 +188,10 @@ public class Engine implements EngineJobListener,
       return null;
     }
 
+    //弱引用没有则内存中查找 有的话 存入弱引用中
     EngineResource<?> cached = loadFromCache(key, isMemoryCacheable);
     if (cached != null) {
+      //找到直接回调 到 SingleRequest onResourceReady
       cb.onResourceReady(cached, DataSource.MEMORY_CACHE);
       if (VERBOSE_IS_LOGGABLE) {
         logWithTimeAndKey("Loaded resource from cache", startTime, key);
@@ -267,6 +271,7 @@ public class Engine implements EngineJobListener,
     EngineResource<?> cached = getEngineResourceFromCache(key);
     if (cached != null) {
       cached.acquire();
+      //存入弱引用
       activeResources.activate(key, cached);
     }
     return cached;

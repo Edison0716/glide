@@ -632,6 +632,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
       throw new IllegalArgumentException("You must call #load() before calling #into()");
     }
 
+    //建立请求
     Request request = buildRequest(target, targetListener, options, callbackExecutor);
 
     Request previous = target.getRequest();
@@ -653,6 +654,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
 
     requestManager.clear(target);
     target.setRequest(request);
+    //追踪请求
     requestManager.track(target, request);
 
     return target;
@@ -903,6 +905,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
       parentCoordinator = errorRequestCoordinator;
     }
 
+    //创建缩略图请求
     Request mainRequest =
         buildThumbnailRequestRecursive(
             target,
@@ -927,6 +930,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
       errorOverrideHeight = requestOptions.getOverrideHeight();
     }
 
+    //错误请求
     Request errorRequest =
         errorBuilder.buildRequestRecursive(
             target,
@@ -938,6 +942,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
             errorOverrideHeight,
             errorBuilder,
             callbackExecutor);
+    //关联
     errorRequestCoordinator.setRequests(mainRequest, errorRequest);
     return errorRequestCoordinator;
   }
@@ -980,6 +985,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
       }
 
       ThumbnailRequestCoordinator coordinator = new ThumbnailRequestCoordinator(parentCoordinator);
+      //正常请求对象
       Request fullRequest =
           obtainRequest(
               target,
@@ -1005,6 +1011,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
               thumbnailBuilder,
               callbackExecutor);
       isThumbnailBuilt = false;
+      //关联
       coordinator.setRequests(fullRequest, thumbRequest);
       return coordinator;
     } else if (thumbSizeMultiplier != null) {
@@ -1053,6 +1060,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
     }
   }
 
+
   private Request obtainRequest(
       Target<TranscodeType> target,
       RequestListener<TranscodeType> targetListener,
@@ -1063,6 +1071,7 @@ public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBui
       int overrideWidth,
       int overrideHeight,
       Executor callbackExecutor) {
+    //真正的请求对象
     return SingleRequest.obtain(
         context,
         glideContext,

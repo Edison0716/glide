@@ -226,6 +226,7 @@ class DecodeJob<R> implements DataFetcherGenerator.FetcherReadyCallback,
     GlideTrace.beginSectionFormat("DecodeJob#run(model=%s)", model);
     // Methods in the try statement can invalidate currentFetcher, so set a local variable here to
     // ensure that the fetcher is cleaned up either way.
+    // 网络请求子线程
     DataFetcher<?> localFetcher = currentFetcher;
     try {
       if (isCancelled) {
@@ -286,6 +287,7 @@ class DecodeJob<R> implements DataFetcherGenerator.FetcherReadyCallback,
     }
   }
 
+  // 关注点1，完整情况下，会异步依次生成这里的ResourceCacheGenerator、DataCacheGenerator和SourceGenerator对象，并在之后执行其中的startNext()
   private DataFetcherGenerator getNextGenerator() {
     switch (stage) {
       case RESOURCE_CACHE:
@@ -293,6 +295,7 @@ class DecodeJob<R> implements DataFetcherGenerator.FetcherReadyCallback,
       case DATA_CACHE:
         return new DataCacheGenerator(decodeHelper, this);
       case SOURCE:
+        //关键点在这 进行网络请求
         return new SourceGenerator(decodeHelper, this);
       case FINISHED:
         return null;

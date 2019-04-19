@@ -57,7 +57,9 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
       @NonNull DataCallback<? super InputStream> callback) {
     long startTime = LogTime.getLogTime();
     try {
+      //请求获得图片流
       InputStream result = loadDataWithRedirects(glideUrl.toURL(), 0, null, glideUrl.getHeaders());
+      //回调
       callback.onDataReady(result);
     } catch (IOException e) {
       if (Log.isLoggable(TAG, Log.DEBUG)) {
