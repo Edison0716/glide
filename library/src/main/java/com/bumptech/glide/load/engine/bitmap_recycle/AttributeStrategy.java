@@ -15,8 +15,10 @@ class AttributeStrategy implements LruPoolStrategy {
 
   @Override
   public void put(Bitmap bitmap) {
+    //获取Key
     final Key key = keyPool.get(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
 
+    //分组
     groupedMap.put(key, bitmap);
   }
 

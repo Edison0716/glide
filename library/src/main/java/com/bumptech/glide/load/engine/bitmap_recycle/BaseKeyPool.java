@@ -4,7 +4,9 @@ import com.bumptech.glide.util.Util;
 import java.util.Queue;
 
 abstract class BaseKeyPool<T extends Poolable> {
+  //前20张图片进行缓存
   private static final int MAX_SIZE = 20;
+  //保存到队列中
   private final Queue<T> keyPool = Util.createQueue(MAX_SIZE);
 
   T get() {

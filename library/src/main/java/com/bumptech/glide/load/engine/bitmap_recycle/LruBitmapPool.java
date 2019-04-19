@@ -226,6 +226,7 @@ public class LruBitmapPool implements BitmapPool {
   }
 
   private synchronized void trimToSize(long size) {
+    //如果当前的BitmapPool占用大于最大内存
     while (currentSize > size) {
       final Bitmap removed = strategy.removeLast();
       // TODO: This shouldn't ever happen, see #331.
@@ -259,9 +260,11 @@ public class LruBitmapPool implements BitmapPool {
         + ", currentSize=" + currentSize + ", maxSize=" + maxSize + "\nStrategy=" + strategy);
   }
 
+
   private static LruPoolStrategy getDefaultStrategy() {
     final LruPoolStrategy strategy;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      //API大于19
       strategy = new SizeConfigStrategy();
     } else {
       strategy = new AttributeStrategy();
@@ -297,7 +300,7 @@ public class LruBitmapPool implements BitmapPool {
 
     @Override
     public void add(Bitmap bitmap) {
-      if (bitmaps.contains(bitmap)) {
+      if (bitmaps.contains(bitmap)) { //相同的 bitmap 不能添加
         throw new IllegalStateException(
             "Can't add already added bitmap: " + bitmap + " [" + bitmap.getWidth() + "x" + bitmap
                 .getHeight() + "]");

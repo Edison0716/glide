@@ -35,23 +35,24 @@ public final class MemorySizeCalculator {
   MemorySizeCalculator(MemorySizeCalculator.Builder builder) {
     this.context = builder.context;
 
+    //内存默认是4M 低内存设备则除以2
     arrayPoolSize =
         isLowMemoryDevice(builder.activityManager)
             ? builder.arrayPoolSizeBytes / LOW_MEMORY_BYTE_ARRAY_POOL_DIVISOR
             : builder.arrayPoolSizeBytes;
-    int maxSize =
-        getMaxSize(
-            builder.activityManager, builder.maxSizeMultiplier, builder.lowMemoryMaxSizeMultiplier);
+    int maxSize = getMaxSize(builder.activityManager, builder.maxSizeMultiplier, builder.lowMemoryMaxSizeMultiplier);
 
     int widthPixels = builder.screenDimensions.getWidthPixels();
     int heightPixels = builder.screenDimensions.getHeightPixels();
+    //计算一张屏幕大小的ARGB-8888的图片
     int screenSize = widthPixels * heightPixels * BYTES_PER_ARGB_8888_PIXEL;
 
     int targetBitmapPoolSize = Math.round(screenSize * builder.bitmapPoolScreens);
 
     int targetMemoryCacheSize = Math.round(screenSize * builder.memoryCacheScreens);
+    // 可用分配给图片的内存 = 最大的可使用的内存 - ArrayPool
     int availableSize = maxSize - arrayPoolSize;
-
+    // 资源超出了 则进行内存限制
     if (targetMemoryCacheSize + targetBitmapPoolSize <= availableSize) {
       memoryCacheSize = targetMemoryCacheSize;
       bitmapPoolSize = targetBitmapPoolSize;
@@ -105,8 +106,10 @@ public final class MemorySizeCalculator {
 
   private static int getMaxSize(ActivityManager activityManager, float maxSizeMultiplier,
       float lowMemoryMaxSizeMultiplier) {
+    //先去判断当前可使用的内存是多少
     final int memoryClassBytes = activityManager.getMemoryClass() * 1024 * 1024;
     final boolean isLowMemoryDevice = isLowMemoryDevice(activityManager);
+    //判断是否是低内存机型 如果是低内存 0.33 普通内存 0.4
     return Math.round(memoryClassBytes * (isLowMemoryDevice ? lowMemoryMaxSizeMultiplier
         : maxSizeMultiplier));
   }

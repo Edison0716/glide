@@ -435,14 +435,15 @@ public final class GlideBuilder {
 
   @NonNull
   Glide build(@NonNull Context context) {
+    //创建图片网络请求线程池
     if (sourceExecutor == null) {
       sourceExecutor = GlideExecutor.newSourceExecutor();
     }
-
+    //创建硬盘缓存线程池
     if (diskCacheExecutor == null) {
       diskCacheExecutor = GlideExecutor.newDiskCacheExecutor();
     }
-
+    //动画线程池
     if (animationExecutor == null) {
       animationExecutor = GlideExecutor.newAnimationExecutor();
     }
@@ -456,10 +457,13 @@ public final class GlideBuilder {
     }
 
     if (bitmapPool == null) {
+      //根据屏幕密度和尺寸设置pool size
       int size = memorySizeCalculator.getBitmapPoolSize();
       if (size > 0) {
+        //缓存操作
         bitmapPool = new LruBitmapPool(size);
       } else {
+        //基本不做任何缓存
         bitmapPool = new BitmapPoolAdapter();
       }
     }

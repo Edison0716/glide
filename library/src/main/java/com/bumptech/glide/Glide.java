@@ -165,11 +165,11 @@ public class Glide implements ComponentCallbacks2 {
     if (glide == null) {
       synchronized (Glide.class) {
         if (glide == null) {
+          //双重检查锁 用于判断Glide只初始化一次
           checkAndInitializeGlide(context);
         }
       }
     }
-
     return glide;
   }
 
@@ -223,10 +223,13 @@ public class Glide implements ComponentCallbacks2 {
     initializeGlide(context, new GlideBuilder());
   }
 
+  //4.0以后 配置Glide不需要再Manifest中注册 通過註解注解
   @SuppressWarnings("deprecation")
   private static void initializeGlide(@NonNull Context context, @NonNull GlideBuilder builder) {
     Context applicationContext = context.getApplicationContext();
+    //获取被注解的GlideModel文件
     GeneratedAppGlideModule annotationGeneratedModule = getAnnotationGeneratedGlideModules();
+    //获取在Manifest中设置的Glide GlideModel 为空 并且配置manifest中设置为true
     List<com.bumptech.glide.module.GlideModule> manifestModules = Collections.emptyList();
     if (annotationGeneratedModule == null || annotationGeneratedModule.isManifestParsingEnabled()) {
       manifestModules = new ManifestParser(applicationContext).parse();
@@ -259,13 +262,17 @@ public class Glide implements ComponentCallbacks2 {
         annotationGeneratedModule != null
             ? annotationGeneratedModule.getRequestManagerFactory() : null;
     builder.setRequestManagerFactory(factory);
+    //遍历
     for (com.bumptech.glide.module.GlideModule module : manifestModules) {
       module.applyOptions(applicationContext, builder);
     }
+    //应用
     if (annotationGeneratedModule != null) {
       annotationGeneratedModule.applyOptions(applicationContext, builder);
     }
+    //glide设置配置信息
     Glide glide = builder.build(applicationContext);
+    //替换Glide默认组件
     for (com.bumptech.glide.module.GlideModule module : manifestModules) {
       try {
         module.registerComponents(applicationContext, glide, glide.registry);
@@ -344,6 +351,9 @@ public class Glide implements ComponentCallbacks2 {
 
     final Resources resources = context.getResources();
 
+    // 注册管理任务执行对象的类(Registry)
+    // Registry是一个工厂，而其中所有注册的对象都是一个工厂员工，当任务分发时，
+    // 根据当前任务的性质，分发给相应员工进行处理
     registry = new Registry();
     registry.register(new DefaultImageHeaderParser());
     // Right now we're only using this parser for HEIF images, which are only supported on OMR1+.

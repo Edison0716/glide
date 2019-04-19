@@ -17,6 +17,23 @@ import java.util.Map;
  * no bitmaps of that size are present. We do not count addition or removal of bitmaps as an
  * access.
  */
+
+/**
+ * groupedMap是GroupedLinkedMap的实例，GroupedLinkedMap内部使用了一个名为head的链表，链表的key是由bitmap size和config构成的Key，
+ * value是一个由bitmap构成的链表。这样GroupedLinkedMap中的每个元素就相当于是一个组，这个组中的bitmap具有相同的size和config,
+ * 对应的存储类实现就是GroupedLinkedMap中的LinkedEntry。同时，为了加快查找速度，GroupedLinkedMap中还有一个keyToEntry的Hashmap，
+ * 将key和链表中的LinkedEntry对应起来。
+ * 在GroupedLinkedMap的Put和get方法中，会将操作元素对应所在的LinkedEntry在head链表中往前移动，由于链表的移动成本很低，因存取效率很高。
+ * ---------------------
+ * 作者：大雀儿飞飞
+ * 来源：CSDN
+ * 原文：https://blog.csdn.net/yxz329130952/article/details/65447706
+ * 版权声明：本文为博主原创文章，转载请附上博文链接！
+ *
+ *
+ * https://www.jianshu.com/p/62b7f990ee83 分析的也挺好
+ */
+
 class GroupedLinkedMap<K extends Poolable, V> {
   private final LinkedEntry<K, V> head = new LinkedEntry<>();
   private final Map<K, LinkedEntry<K, V>> keyToEntry = new HashMap<>();

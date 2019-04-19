@@ -56,6 +56,12 @@ public class SizeConfigStrategy implements LruPoolStrategy {
 
   private final KeyPool keyPool = new KeyPool();
   private final GroupedLinkedMap<Key, Bitmap> groupedMap = new GroupedLinkedMap<>();
+  /**
+   * sortedSizes实际上是groupedMap的一个概要信息，他不做缓存，只表明SizeConfigStrategy中的GroupedLinkedMap中指定size和config的bitmap有多少。
+   * 它是一个Hashmap，其中key是bitmap config，value是TreeMap，TreeMap的key为bitmap size，value为bitmap的数量，
+   * 这样一来，首先通过config能够查询到缓存中bitmap config为指定值的bitmap有哪些大小的，然后每个大小后面的数据由表明了这种config和size的bitmap在内存中还有多少，
+   * 所以缓存中的bitmap信息也就一目了然。
+   */
   private final Map<Bitmap.Config, NavigableMap<Integer, Integer>> sortedSizes = new HashMap<>();
 
   @Override
@@ -73,24 +79,26 @@ public class SizeConfigStrategy implements LruPoolStrategy {
   @Override
   @Nullable
   public Bitmap get(int width, int height, Bitmap.Config config) {
-    int size = Util.getBitmapByteSize(width, height, config);
+    int size = Util.getBitmapByteSize(width, height, config);//计算出bitmap的size
     Key bestKey = findBestKey(size, config);
 
-    Bitmap result = groupedMap.get(bestKey);
+    Bitmap result = groupedMap.get(bestKey);//从缓存中获取并删除
     if (result != null) {
       // Decrement must be called before reconfigure.
-      decrementBitmapOfSize(bestKey.size, result);
-      result.reconfigure(width, height, config);
+      decrementBitmapOfSize(bestKey.size, result);// 缓存命中 则 记录信息要减一
+      result.reconfigure(width, height, config); // 在底层图片存储不变的情况下将缓存配置成要求的图片
     }
     return result;
   }
 
+  //获取Key
   private Key findBestKey(int size, Bitmap.Config config) {
     Key result = keyPool.get(size, config);
     for (Bitmap.Config possibleConfig : getInConfigs(config)) {
       NavigableMap<Integer, Integer> sizesForPossibleConfig = getSizesForConfig(possibleConfig);
       Integer possibleSize = sizesForPossibleConfig.ceilingKey(size);
       if (possibleSize != null && possibleSize <= size * MAX_SIZE_MULTIPLE) {
+        //size config 不一定非得完全相等
         if (possibleSize != size
             || (possibleConfig == null ? config != null : !possibleConfig.equals(config))) {
           keyPool.offer(result);
@@ -131,6 +139,11 @@ public class SizeConfigStrategy implements LruPoolStrategy {
     }
   }
 
+  /**
+   * 获取一种config对应有哪些不同大小图片的概要信息
+   * @param config
+   * @return
+   */
   private NavigableMap<Integer, Integer> getSizesForConfig(Bitmap.Config config) {
     NavigableMap<Integer, Integer> sizes = sortedSizes.get(config);
     if (sizes == null) {
@@ -173,6 +186,10 @@ public class SizeConfigStrategy implements LruPoolStrategy {
     return sb.append(")}").toString();
   }
 
+  /**
+   * 由于存在很多图片大小相同且图片配置类型也一样的图片（这是使用Glide的前提假设），为了更加快速地构建
+   * 图片缓存的key，将最近常用的Key缓存起来。避免每次都使用size和config来创建一个新的对象。
+   */
   @VisibleForTesting
   static class KeyPool extends BaseKeyPool<Key> {
 
@@ -188,6 +205,9 @@ public class SizeConfigStrategy implements LruPoolStrategy {
     }
   }
 
+  /**
+   * 将bitmap的大小和配置封装，作为后面缓存存取的key.
+   */
   @VisibleForTesting
   static final class Key implements Poolable {
     private final KeyPool pool;
